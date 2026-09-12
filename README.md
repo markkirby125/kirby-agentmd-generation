@@ -10,6 +10,27 @@ By ignoring memory optimization, your AI agents become exponentially more expens
 
 **The Solution:** The `kirby-agentmd-generation` skill forces your agent to aggressively slim down memory files. It establishes a deterministic pipeline to move static reference knowledge into on-demand persistent stores (like the `codebase-memory-mcp` memory cache and ADRs) while keeping essential behavioral rules load-bearing in the root context. Crucially, it dictates exactly how to initialize and commit the `.codebase-memory/` cache so this knowledge persists across sessions and teams.
 
+## Prerequisites: The Memory-Cache Server
+
+This skill heavily relies on the **`codebase-memory-mcp`** server to generate the persistent graph cache (`.codebase-memory/graph.db.zst`). 
+
+To install the MCP server, add the following to your agent's MCP configuration file (e.g., `~/.gemini/antigravity-cli/mcp/`, `claude.json`, or `.cursor/mcp.json`):
+
+```json
+{
+  "mcpServers": {
+    "codebase-memory": {
+      "command": "uvx",
+      "args": ["codebase-memory-mcp"]
+    }
+  }
+}
+```
+
+### Troubleshooting
+* **Skill still runs if missing:** If you run the skill without the MCP installed, it will **not** crash. It will automatically degrade to "Docs-Only Mode," successfully splitting your reference files into `docs/reference/` without generating the database artifact.
+* **Server registered mid-session:** If you install the MCP server *while* an agent session is currently active, the agent won't see it until you restart the session.
+
 ## Installation & Usage
 This is a standard AI agent skill (compatible with Antigravity, Cursor, Windsurf).
 1. Copy the `SKILL.md` file into your agent's skills directory.
