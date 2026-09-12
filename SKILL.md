@@ -33,20 +33,32 @@ Setting up the persistent memory-cache correctly is essential. Reference knowled
 - **Persistent Artifact (`.codebase-memory/`)**: Executing `index_repository(persistence=true)` writes `.codebase-memory/graph.db.zst` (+ `artifact.json`, `.gitattributes`) **into the repo**. **You MUST commit these** so teammates/CI bootstrap from the artifact instead of re-indexing.
 - **ADR Mutation Warning**: `manage_adr(mode='update')` **mutates `graph.db.zst`**. You must seed the ADR *before* committing the `.codebase-memory/` artifact, or expect a follow-up commit.
 
-## Step 0 — Verify Memory-Cache is Configured
+## Step 0 — Preflight & Graceful Degradation
 
-1. **Find the registration** — check, in order: project `.kimi-code/mcp.json`, project `.mcp.json`, global `~/.reasonix/config.toml` `[[plugins]]`. Validate JSON: `python3 -m json.tool <file>`.
-2. **Confirm the binary** — `<command> --version`; then a **stdio handshake probe**:
-   ```bash
-   printf '%s\n' \
-     '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"probe","version":"0"}}}' \
-     '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}' \
-     | <command> 2>/dev/null | head -c 400
-   ```
-3. **Confirm the index binds THIS repo** — `list_projects` → `root_path` must equal `realpath` of the workspace.
-4. **Confirm freshness** — `index_status` → status `ready`/`indexed`; check `check_index_coverage` `metadata.generation_matches: true`.
-5. **Functional probe** — `search_graph` for a known symbol returns correct file:line.
-6. **Session-liveness caveat** — MCP servers registered mid-session only join **new sessions**. Defer indexing/ADR to next session via an open task in `docs/TASKS.md`.
+Before attempting memory-cache initialization, execute this preflight check to determine the graceful degradation path:
+
+1. **Check for live tool availability:**
+   - Check if the agent's active tools include `index_repository`, `manage_adr`, and `search_graph`.
+   - If **YES** (Tools Available): Proceed to Step 1 (Full Memory-Cache Mode).
+
+2. **If NO (Tools Missing or Unconfigured):**
+   - Alert the user that `codebase-memory-mcp` is not actively loaded. Offer the following installation snippet for their environment (e.g., `.mcp.json`, `~/.gemini/antigravity-cli/mcp/`, `claude.json`, or `.cursor/mcp.json`):
+     ```json
+     {
+       "mcpServers": {
+         "codebase-memory": {
+           "command": "uvx",
+           "args": ["codebase-memory-mcp"]
+         }
+       }
+     }
+     ```
+   - **Graceful Fallback**: Do NOT fail or abort the slimdown. Automatically downgrade from "Graph Cache Mode" to "Docs-Only Mode":
+     - Extract all reference data into `docs/reference/` as normal.
+     - Link directly via markdown path links in `AGENTS.md`.
+     - Completely skip `index_repository()` and `manage_adr()` in Step 3.
+     - Add a note to the final commit message indicating the docs-only fallback was used.
+   - **Session-Liveness Caveat**: If the user installs the MCP server mid-session, the server will only join **new sessions**. Do not attempt to run Step 3 graph indexing until the session is restarted; defer it via a task in `docs/TASKS.md`.
 
 ## Step 1 — Investigate (measure before moving)
 
