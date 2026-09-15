@@ -42,7 +42,13 @@ This is a standard AI agent skill (compatible with Antigravity, Cursor, Windsurf
 > ```markdown
 > @agent Please install the kirby-agentmd-generation skill into this workspace.
 > 1. Read the `SKILL.md` file from this repository: https://github.com/markkirby125/kirby-agentmd-generation
-> 2. Identify the correct rules system for our current environment (e.g., `.cursor/rules/` for Cursor, `.windsurfrules` for Windsurf, `.clinerules` for Cline, or `~/.gemini/config/skills/` for Antigravity).
+> 2. Identify the correct rules system for our current environment (e.g., `.cursor/rules/` for Cursor, `.windsurfrules` for Windsurf, `.clinerules` for Cline, or `~/.agents/skills/` for Antigravity).
 > 3. Save the contents appropriately.
 > 4. Confirm when the installation is complete.
 > ```
+
+### Manual Installation
+
+- **Cursor:** Copy `SKILL.md` to `.cursor/rules/kirby-agentmd-generation.mdc`
+- **Windsurf:** Append the contents of `SKILL.md` to `.windsurfrules`
+- **Antigravity:** Clone this repository to `~/.agents/skills/kirby-agentmd-generation`

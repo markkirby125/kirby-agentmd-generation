@@ -1,6 +1,6 @@
 ---
 name: kirby-agentmd-generation
-description: "Use to generate, optimize, and slim down AGENTS.md / CLAUDE.md files by offloading reference knowledge to the codebase-memory-mcp graph and configuring the persistent memory-cache."
+description: "Use when generating or slimming AGENTS.md / CLAUDE.md, or when those files have grown bloated."
 category: technique
 triggers: [agents-md, generate-agents-md, slim-agents, memory-bloat, codebase-memory-mcp, memory-cache]
 ---
